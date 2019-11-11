@@ -32,6 +32,8 @@ namespace Consortio_Translation_Repair_Tool
         private TimeSpan _currentElapsedTime = TimeSpan.Zero;
         private TimeSpan _totalElapsedTime = TimeSpan.Zero;
         private bool _timerRunning = false;
+        private StringBuilder _inputSb = new StringBuilder();
+        private StringBuilder _OutputSb = new StringBuilder();
 
 
         public Form1()
@@ -40,7 +42,8 @@ namespace Consortio_Translation_Repair_Tool
             _timer = new System.Timers.Timer();
             _timer.Elapsed += new System.Timers.ElapsedEventHandler(_timer_tick);
             _timer.Interval = 1000;
-           // this.Icon = Consortio_Translation_Repair_Tool.Properties.Resources.Logo;
+            Bitmap bm = new Bitmap(Properties.Resources.Logo);
+            this.Icon = Icon.FromHandle(bm.GetHicon());
         }
 
         // Timer event
@@ -163,15 +166,17 @@ namespace Consortio_Translation_Repair_Tool
 
                             while ((line = fileReader.ReadLine()) != null)
                             {
+                                _inputSb.AppendLine(line);
                                 if (line.Contains(CaptionML) && line.Contains('[') || _findlastBracketsCaptions)
                                 {
-
                                     var newLine = AddDanFromEnuInArrayCaptionML(line);
+                                    _OutputSb.AppendLine(newLine);
                                     fileWriter.WriteLine(newLine);
                                     if (line.Contains(']'))
                                     {
                                         if (DisplayProgressOutputCb.Checked)
                                         {
+                                           
                                             UpdateControl($"Line found: {CaptionMLCounter++} line content: {line} ");
                                             UpdateControl($"CaptionML Result: { newLine }");
                                         }
@@ -180,49 +185,60 @@ namespace Consortio_Translation_Repair_Tool
                                 else if (line.Contains(CaptionMLWithENU))
                                 {
                                     var newLine = AddDanFromEnuOnCaptionML(line);
+                                    _OutputSb.AppendLine(newLine);
                                     fileWriter.WriteLine(newLine);
                                     if (DisplayProgressOutputCb.Checked)
                                     {
+                                        
                                         UpdateControl($"Line found: {CaptionMLCounter++} line content: {line} ");
                                         UpdateControl($"CaptionML Result: { newLine }");
                                     }
                                 }
-                                else if (line.Contains(PageNamesML)&& line.Contains('}'))
+                                else if (line.Contains(PageNamesML) && line.Contains('}'))
                                 {
                                     var newLine = AddDanFromEnuPagenamesML(line);
+                                    _OutputSb.AppendLine(newLine);
                                     fileWriter.WriteLine(newLine);
                                     if (DisplayProgressOutputCb.Checked)
                                     {
+                                        
                                         UpdateControl($"Line found: { TextConstCounter++} line content: {line} ");
                                         UpdateControl($"TextConst Result: { newLine }");
                                     }
                                 }
                                 else if (line.Contains('[') && line.Contains(PageNamesML) || _findlastBracketsPageNames)
                                 {
+                                    _OutputSb.AppendLine(line);
                                     var newLine = AddDanFromEnuInArrayPageNamesML(line);
+                                    _OutputSb.AppendLine(newLine);
                                     fileWriter.WriteLine(newLine);
                                     if (line.Contains(']'))
                                     {
                                         if (DisplayProgressOutputCb.Checked)
                                         {
+                                           
                                             UpdateControl($"Line found: {CaptionMLCounter++} line content: {line} ");
                                             UpdateControl($"CaptionML Result: { newLine }");
                                         }
                                     }
                                 }
-
                                 else if (line.Contains(TextConst))
                                 {
                                     var newLine = AddDanFromEnuOnTextConst(line);
+                                    _OutputSb.AppendLine(newLine);
                                     fileWriter.WriteLine(newLine);
                                     if (DisplayProgressOutputCb.Checked)
                                     {
+                                       
                                         UpdateControl($"Line found: { TextConstCounter++} line content: {line} ");
                                         UpdateControl($"TextConst Result: { newLine }");
                                     }
                                 }
                                 else
+                                {
+                                    _OutputSb.AppendLine(line);
                                     fileWriter.WriteLine(line);
+                                }
                             }
                             fileWriter.Close();
                             fileReader.Close();
@@ -242,10 +258,12 @@ namespace Consortio_Translation_Repair_Tool
                 }
                 finally
                 {
+                    DumpResultsInRichTextBox();
                     // Stop and reset the timer if it was running
                     _timer.Stop();
                     _timerRunning = false;
                     onComplete();
+                   
                 }
                 if (DisplayProgressOutputCb.Checked)
                     UpdateControl(filesInDir + $" Count : {CaptionMLCounter.ToString()}" + Environment.NewLine);
@@ -273,6 +291,7 @@ namespace Consortio_Translation_Repair_Tool
                 richTextBox1.ResumeLayout();
             }
         }
+
 
         private string AddDanFromEnuOnCaptionML(string line)
         {
@@ -497,9 +516,60 @@ namespace Consortio_Translation_Repair_Tool
             }
         }
 
+        //When finish update Richtextbox1 in GUI thread
+        void UpdateRichTextBox1(string text)
+        {
+            if (richTextBox1.InvokeRequired)
+            {
+                richTextBox1.Invoke(new Action<string>(OutputRichTextBox1),text);
+                return;
+            }
+            else
+            {
+                //Code goes here to apply the update.  This will run on the UI thread, 
+                //such as your call to update your RichTextBox:
+                OutputRichTextBox1(text);
+            }
+        }
+
+        void UpdateRichTextBox2(string text)
+        {
+            if (richTextBox2.InvokeRequired)
+            {
+                richTextBox2.Invoke(new Action<string>(OutputRichTextBox2), text);
+                return;
+            }
+            else
+            {
+                //Code goes here to apply the update.  This will run on the UI thread, 
+                //such as your call to update your RichTextBox:
+                OutputRichTextBox2(text);
+            }
+        }
+
+        //When finish update Richtextbox1 
+        public void OutputRichTextBox1(string text)
+        {
+            richTextBox1.Text = text;
+        }
+
+        public void OutputRichTextBox2(string text)
+        {
+            richTextBox2.Text = text;
+        }
+
+    
+
         Action onComplete = () => 
         {
             MessageBox.Show("COMPLETED!!");
         };
+
+
+        public void DumpResultsInRichTextBox()
+        {
+            UpdateRichTextBox1(_inputSb.ToString());
+            UpdateRichTextBox2(_OutputSb.ToString());
+        }
     }
 }
