@@ -40,6 +40,7 @@
             this.richTextBox2 = new System.Windows.Forms.RichTextBox();
             this.panel1 = new System.Windows.Forms.Panel();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -49,7 +50,7 @@
             // openBtn
             // 
             this.openBtn.Location = new System.Drawing.Point(6, 15);
-            this.openBtn.Margin = new System.Windows.Forms.Padding(2);
+            this.openBtn.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.openBtn.Name = "openBtn";
             this.openBtn.Size = new System.Drawing.Size(78, 27);
             this.openBtn.TabIndex = 0;
@@ -69,7 +70,7 @@
             // executeBtn
             // 
             this.executeBtn.Location = new System.Drawing.Point(6, 64);
-            this.executeBtn.Margin = new System.Windows.Forms.Padding(2);
+            this.executeBtn.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.executeBtn.Name = "executeBtn";
             this.executeBtn.Size = new System.Drawing.Size(78, 26);
             this.executeBtn.TabIndex = 2;
@@ -92,11 +93,12 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.richTextBox1.Location = new System.Drawing.Point(2, 2);
-            this.richTextBox1.Margin = new System.Windows.Forms.Padding(2);
+            this.richTextBox1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.richTextBox1.Name = "richTextBox1";
-            this.richTextBox1.Size = new System.Drawing.Size(511, 353);
+            this.richTextBox1.Size = new System.Drawing.Size(372, 350);
             this.richTextBox1.TabIndex = 4;
             this.richTextBox1.Text = "";
+            this.richTextBox1.VScroll += new System.EventHandler(this.RichTextBox1_VScroll);
             // 
             // copyInfoLbl
             // 
@@ -110,7 +112,7 @@
             // 
             this.TotalElapsedTimeDisplayLbl.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.TotalElapsedTimeDisplayLbl.AutoSize = true;
-            this.TotalElapsedTimeDisplayLbl.Location = new System.Drawing.Point(929, 15);
+            this.TotalElapsedTimeDisplayLbl.Location = new System.Drawing.Point(660, 29);
             this.TotalElapsedTimeDisplayLbl.Name = "TotalElapsedTimeDisplayLbl";
             this.TotalElapsedTimeDisplayLbl.Size = new System.Drawing.Size(31, 13);
             this.TotalElapsedTimeDisplayLbl.TabIndex = 6;
@@ -120,7 +122,7 @@
             // 
             this.ElapseTimerLbl.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.ElapseTimerLbl.AutoSize = true;
-            this.ElapseTimerLbl.Location = new System.Drawing.Point(822, 15);
+            this.ElapseTimerLbl.Location = new System.Drawing.Point(560, 29);
             this.ElapseTimerLbl.Name = "ElapseTimerLbl";
             this.ElapseTimerLbl.Size = new System.Drawing.Size(101, 13);
             this.ElapseTimerLbl.TabIndex = 7;
@@ -143,16 +145,18 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.richTextBox2.Location = new System.Drawing.Point(3, 3);
             this.richTextBox2.Name = "richTextBox2";
-            this.richTextBox2.Size = new System.Drawing.Size(505, 355);
+            this.richTextBox2.Size = new System.Drawing.Size(362, 353);
             this.richTextBox2.TabIndex = 9;
             this.richTextBox2.Text = "";
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.TotalElapsedTimeDisplayLbl);
+            this.panel1.Controls.Add(this.ElapseTimerLbl);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(1030, 129);
+            this.panel1.Size = new System.Drawing.Size(752, 129);
             this.panel1.TabIndex = 10;
             // 
             // splitContainer1
@@ -169,28 +173,28 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.richTextBox2);
-            this.splitContainer1.Size = new System.Drawing.Size(1030, 384);
-            this.splitContainer1.SplitterDistance = 515;
+            this.splitContainer1.Size = new System.Drawing.Size(752, 381);
+            this.splitContainer1.SplitterDistance = 376;
             this.splitContainer1.TabIndex = 11;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1030, 513);
+            this.ClientSize = new System.Drawing.Size(752, 510);
             this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.copyInfoLbl);
             this.Controls.Add(this.pathLbl);
-            this.Controls.Add(this.TotalElapsedTimeDisplayLbl);
-            this.Controls.Add(this.ElapseTimerLbl);
             this.Controls.Add(this.DisplayProgressOutputCb);
             this.Controls.Add(this.executeBtn);
             this.Controls.Add(this.openBtn);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.countLbl);
-            this.Margin = new System.Windows.Forms.Padding(2);
+            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.Name = "Form1";
             this.Text = "Consortio ML repair tool";
+            this.panel1.ResumeLayout(false);
+            this.panel1.PerformLayout();
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();

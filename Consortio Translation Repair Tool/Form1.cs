@@ -8,6 +8,7 @@ using System.IO;
 //using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -56,8 +57,10 @@ namespace Consortio_Translation_Repair_Tool
             // The current elapsed time is the time since the start 
             // was clicked, plus the total time elapsed since the last reset
             _currentElapsedTime = timeSinceStartTime + _totalElapsedTime;
-         
-            TotalElapsedTimeDisplayLbl.Invoke((MethodInvoker)(() => TotalElapsedTimeDisplayLbl.Text = _currentElapsedTime.ToString()));
+           
+            //  TotalElapsedTimeDisplayLbl.Invoke((MethodInvoker)(() => TotalElapsedTimeDisplayLbl.Text = _currentElapsedTime.ToString()));
+              SetLblPropertyThreadSafe(_currentElapsedTime.ToString());
+          //  TotalElapsedTimeDisplayLbl.Text = _currentElapsedTime.ToString();
         }
 
         private void OpenBtn_Click(object sender, EventArgs e)
@@ -77,13 +80,17 @@ namespace Consortio_Translation_Repair_Tool
 
         private async void ExecuteBtn_Click(object sender, EventArgs e)
         {
-          
+            richTextBox1.Clear();
+            richTextBox2.Clear();
             await Task.Run(() => Execute());
            
 
         }
         private void Execute()
-        { 
+        {
+            _inputSb.Clear();
+            _OutputSb.Clear();
+           
             // Reset the elapsed time TimeSpan objects
             _totalElapsedTime = TimeSpan.Zero;
             _currentElapsedTime = TimeSpan.Zero;
@@ -156,6 +163,7 @@ namespace Consortio_Translation_Repair_Tool
                 string PageNamesML = "PageNamesML=";
                 string TextConst = ": TextConst";
                 string CaptionML = "CaptionML=";
+                string captionMLWithDEU = "CaptionML=DEU=";
                 Encoding encoding = Encoding.GetEncoding(850);
                 try
                 {
@@ -169,7 +177,7 @@ namespace Consortio_Translation_Repair_Tool
                                 _inputSb.AppendLine(line);
                                 if (line.Contains(CaptionML) && line.Contains('[') || _findlastBracketsCaptions)
                                 {
-                                    var newLine = AddDanFromEnuInArrayCaptionML(line);
+                                    var newLine = AddDanFromArrayCaptionML(line);
                                     _OutputSb.AppendLine(newLine);
                                     fileWriter.WriteLine(newLine);
                                     if (line.Contains(']'))
@@ -184,7 +192,7 @@ namespace Consortio_Translation_Repair_Tool
                                 }
                                 else if (line.Contains(CaptionMLWithENU))
                                 {
-                                    var newLine = AddDanFromEnuOnCaptionML(line);
+                                    var newLine = AddDanFromEnuOrDeuCaptionML(line);
                                     _OutputSb.AppendLine(newLine);
                                     fileWriter.WriteLine(newLine);
                                     if (DisplayProgressOutputCb.Checked)
@@ -194,9 +202,21 @@ namespace Consortio_Translation_Repair_Tool
                                         UpdateControl($"CaptionML Result: { newLine }");
                                     }
                                 }
+                                else if (line.Contains(captionMLWithDEU))
+                                {
+                                    var newLine = AddDanFromEnuOrDeuCaptionML(line);
+                                    _OutputSb.AppendLine(newLine);
+                                    fileWriter.WriteLine(newLine);
+                                    if (DisplayProgressOutputCb.Checked)
+                                    {
+
+                                        UpdateControl($"Line found: {CaptionMLCounter++} line content: {line} ");
+                                        UpdateControl($"CaptionML Result: { newLine }");
+                                    }
+                                }
                                 else if (line.Contains(PageNamesML) && line.Contains('}'))
                                 {
-                                    var newLine = AddDanFromEnuPagenamesML(line);
+                                    var newLine = AddDanFromEnuOrDeuPagenamesML(line);
                                     _OutputSb.AppendLine(newLine);
                                     fileWriter.WriteLine(newLine);
                                     if (DisplayProgressOutputCb.Checked)
@@ -209,7 +229,7 @@ namespace Consortio_Translation_Repair_Tool
                                 else if (line.Contains('[') && line.Contains(PageNamesML) || _findlastBracketsPageNames)
                                 {
                                     _OutputSb.AppendLine(line);
-                                    var newLine = AddDanFromEnuInArrayPageNamesML(line);
+                                    var newLine = AddDanInArrayPageNamesML(line);
                                     _OutputSb.AppendLine(newLine);
                                     fileWriter.WriteLine(newLine);
                                     if (line.Contains(']'))
@@ -224,7 +244,7 @@ namespace Consortio_Translation_Repair_Tool
                                 }
                                 else if (line.Contains(TextConst))
                                 {
-                                    var newLine = AddDanFromEnuOnTextConst(line);
+                                    var newLine = AddDanOnTextConst(line);
                                     _OutputSb.AppendLine(newLine);
                                     fileWriter.WriteLine(newLine);
                                     if (DisplayProgressOutputCb.Checked)
@@ -293,12 +313,17 @@ namespace Consortio_Translation_Repair_Tool
         }
 
 
-        private string AddDanFromEnuOnCaptionML(string line)
+        private string AddDanFromEnuOrDeuCaptionML(string line)
         {
             string newLine = line;
-            if (!line.Contains("DAN") && line.Contains("ENU"))
+            if (!line.Contains("DAN") && (line.Contains("ENU") || line.Contains("DEU")))
             {
-                int pos1 = line.IndexOf("ENU") + 2;
+                int pos1;
+                if (line.Contains("ENU"))
+                    pos1 = line.IndexOf("ENU") + 2;
+                else
+                    pos1 = line.IndexOf("DEU") + 2;
+
                 int pos3 = line.IndexOf("CaptionML")-1;
                 var semiColonBeforeCaption = line.Substring(pos3, 1);
                 int pos2 = line.IndexOf('}');
@@ -312,11 +337,18 @@ namespace Consortio_Translation_Repair_Tool
                     if (semiColonBeforeCaption == ";")
                     {
                         content = line.Substring(0, pos3 + 1);
-                        newLine = $"{content}CaptionML=[DAN{line.Substring(pos1 + 1, pos2 - pos1).Trim()};ENU{line.Substring(pos1 + 1, pos2 - pos1).Trim()}];" + " }";
+                        if(line.Contains("ENU"))
+                            newLine = $"{content}CaptionML=[DAN{line.Substring(pos1 + 1, pos2 - pos1).Trim()};ENU{line.Substring(pos1 + 1, pos2 - pos1).Trim()}];" + " }";
+                        else
+                            newLine = $"{content}CaptionML=[DAN{line.Substring(pos1 + 1, pos2 - pos1).Trim()};DEU{line.Substring(pos1 + 1, pos2 - pos1).Trim()}];" + " }";
+
                     }
                     else
                     {
-                        newLine = $"CaptionML=[DAN{line.Substring(pos1 + 1, pos2 - pos1).Trim()};ENU{line.Substring(pos1 + 1, pos2 - pos1).Trim()}];" + " }";
+                        if (line.Contains("ENU"))
+                            newLine = $"CaptionML=[DAN{line.Substring(pos1 + 1, pos2 - pos1).Trim()};ENU{line.Substring(pos1 + 1, pos2 - pos1).Trim()}];" + " }";
+                        else
+                            newLine = $"CaptionML=[DAN{line.Substring(pos1 + 1, pos2 - pos1).Trim()};DEU{line.Substring(pos1 + 1, pos2 - pos1).Trim()}];" + " }";
                     }
                 }
                 else
@@ -324,20 +356,26 @@ namespace Consortio_Translation_Repair_Tool
                     if (semiColonBeforeCaption == ";")
                     {
                         content = line.Substring(0, pos3 + 1);
-                        newLine = $"{content}CaptionML=[DAN{line.Substring(pos1 + 1, pos4 - pos1).Trim()}ENU{line.Substring(pos1 + 1, (pos4 - pos1) - 1).Trim()}];";
+                        if (line.Contains("ENU"))
+                            newLine = $"{content}CaptionML=[DAN{line.Substring(pos1 + 1, pos4 - pos1).Trim()}ENU{line.Substring(pos1 + 1, (pos4 - pos1) - 1).Trim()}];";
+                        else
+                            newLine = $"{content}CaptionML=[DAN{line.Substring(pos1 + 1, pos4 - pos1).Trim()}DEU{line.Substring(pos1 + 1, (pos4 - pos1) - 1).Trim()}];";
                     }
                     else
                     {
                         pos2 = line.Length - 1;
                         var CaptionValue = line.Substring(pos1 + 1, (pos2 - pos1) - 1);
-                        newLine = "CaptionML=[DAN" + CaptionValue.Trim() + ";ENU" + CaptionValue.Trim() + "];";
+                        if (line.Contains("ENU"))
+                            newLine = "CaptionML=[DAN" + CaptionValue.Trim() + ";ENU" + CaptionValue.Trim() + "];";
+                        else
+                            newLine = "CaptionML=[DAN" + CaptionValue.Trim() + ";DEU" + CaptionValue.Trim() + "];";
                     }
                 }
             }
             return newLine;
         }
 
-        private string AddDanFromEnuPagenamesML(string line)
+        private string AddDanFromEnuOrDeuPagenamesML(string line)
         {
             string newLine = line;
             if (!line.Contains("DAN") && line.Contains("ENU"))
@@ -357,7 +395,7 @@ namespace Consortio_Translation_Repair_Tool
                 return newLine;
         }
 
-        private string AddDanFromEnuOnTextConst(string line)
+        private string AddDanOnTextConst(string line)
         {
             string newLine = line;
             if (!line.Contains("DAN") && (!line.Contains("DEU") && line.Contains("ENU")))
@@ -411,7 +449,7 @@ namespace Consortio_Translation_Repair_Tool
             return newLine;
         }
 
-        private string AddDanFromEnuInArrayCaptionML(string line)
+        private string AddDanFromArrayCaptionML(string line)
         {
             string newLine = line;
             if(!line.Contains("DAN"))
@@ -428,6 +466,19 @@ namespace Consortio_Translation_Repair_Tool
                     int pos1 = line.IndexOf("ENU") + 2;
                     int pos2 = line.IndexOf(']');
                     int pos3 = line.IndexOf("ENU");
+                    string captionValue = line.Substring(pos1 + 1, (pos2 - pos1) - 1);
+                    _lineTemp.Add($"DAN{ captionValue};");
+                    string newlineLength = new string(' ', line.Length);
+                    newLine = newlineLength.Insert(pos3, _lineTemp[2] + _lineTemp[1]);
+                    _lineTemp.Clear();
+                }
+                else if(line.Contains(']') && _findlastBracketsCaptions && line.Contains("DEU"))
+                {
+                    _lineTemp.Add(line.Trim());
+                    _findlastBracketsCaptions = false;
+                    int pos1 = line.IndexOf("DEU") + 2;
+                    int pos2 = line.IndexOf(']');
+                    int pos3 = line.IndexOf("DEU");
                     string captionValue = line.Substring(pos1 + 1, (pos2 - pos1) - 1);
                     _lineTemp.Add($"DAN{ captionValue};");
                     string newlineLength = new string(' ', line.Length);
@@ -453,7 +504,7 @@ namespace Consortio_Translation_Repair_Tool
             return newLine;
         }
 
-        private string AddDanFromEnuInArrayPageNamesML(string line)
+        private string AddDanInArrayPageNamesML(string line)
         {
             string newLine = line;
             if (!line.Contains("DAN"))
@@ -476,6 +527,19 @@ namespace Consortio_Translation_Repair_Tool
                     newLine = newlineLength.Insert(pos3, _lineTemp[2] + _lineTemp[1]);
                     _lineTemp.Clear();
                 }
+                else if (line.Contains(']') && _findlastBracketsPageNames && line.Contains("DEU"))
+                {
+                    _lineTemp.Add(line.Trim());
+                    _findlastBracketsPageNames = false;
+                    int pos1 = line.IndexOf("DEU") + 2;
+                    int pos2 = line.IndexOf(']');
+                    int pos3 = line.IndexOf("DEU");
+                    string captionValue = line.Substring(pos1 + 1, (pos2 - pos1) - 1);
+                    _lineTemp.Add($"DAN{ captionValue};");
+                    string newlineLength = new string(' ', line.Length);
+                    newLine = newlineLength.Insert(pos3, _lineTemp[2] + _lineTemp[1]);
+                    _lineTemp.Clear();
+                }
             }
 
             return newLine;
@@ -483,21 +547,21 @@ namespace Consortio_Translation_Repair_Tool
 
 
         //Update Label on UI thread
-        public static void SetControlPropertyThreadSafe(Control control, string propertyName, object propertyValue)
+        void SetLblPropertyThreadSafe(string text)
         {
-            if (control.InvokeRequired)
+            if(TotalElapsedTimeDisplayLbl.InvokeRequired)
             {
-                control.Invoke(new SetControlPropertyThreadSafeDelegate(SetControlPropertyThreadSafe), new object[] { control, propertyName, propertyValue });
+                TotalElapsedTimeDisplayLbl.Invoke(new Action<string>(SetTotalElapsedTimeDisplayLbl), text);
             }
             else
             {
-                control.GetType().InvokeMember(
-                    propertyName,
-                    BindingFlags.SetProperty,
-                    null,
-                    control,
-                    new object[] { propertyValue });
+                SetTotalElapsedTimeDisplayLbl(text);
             }
+        }
+
+        private void SetTotalElapsedTimeDisplayLbl(string text)
+        {
+            TotalElapsedTimeDisplayLbl.Text = text;
         }
 
         //Update RichTextBox on UI thread
@@ -554,7 +618,7 @@ namespace Consortio_Translation_Repair_Tool
         }
 
         public void OutputRichTextBox2(string text)
-        {
+        { 
             richTextBox2.Text = text;
         }
 
@@ -570,6 +634,39 @@ namespace Consortio_Translation_Repair_Tool
         {
             UpdateRichTextBox1(_inputSb.ToString());
             UpdateRichTextBox2(_OutputSb.ToString());
+          
+        }
+
+        private void RichTextBox1_VScroll(object sender, EventArgs e)
+        {
+            int nPos = GetScrollPos(richTextBox1.Handle, (int)ScrollBarType.SbVert);
+            nPos <<= 16;
+            int wParam = (int)ScrollBarCommands.SB_THUMBPOSITION | (int)nPos;
+            SendMessage(richTextBox2.Handle, (int)Message.WM_VSCROLL, new IntPtr(wParam), new IntPtr(0));
+        }
+
+        [DllImport("User32.dll")]
+        public extern static int GetScrollPos(IntPtr hWnd, int nBar);
+
+        [DllImport("User32.dll")]
+        public extern static int SendMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
+        public enum ScrollBarType : uint
+        {
+            SbHorz = 0,
+            SbVert = 1,
+            SbCtl = 2,
+            SbBoth = 3
+        }
+
+        public enum Message : uint
+        {
+            WM_VSCROLL = 0x0115
+        }
+
+        public enum ScrollBarCommands : uint
+        {
+            SB_THUMBPOSITION = 4
         }
     }
 }
