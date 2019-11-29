@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Consortio_Translation_Repair_Tool.Properties {
+namespace Consortio_ML_Repair_Tool.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Consortio_Translation_Repair_Tool.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Consortio_Translation_Repair_Tool.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Consortio_ML_Repair_Tool.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,12 +61,12 @@ namespace Consortio_Translation_Repair_Tool.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         /// </summary>
-        internal static System.Drawing.Bitmap Logo {
+        internal static System.Drawing.Icon C_logo {
             get {
-                object obj = ResourceManager.GetObject("Logo", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                object obj = ResourceManager.GetObject("C_logo", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
             }
         }
     }

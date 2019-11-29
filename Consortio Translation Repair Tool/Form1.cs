@@ -43,8 +43,8 @@ namespace Consortio_Translation_Repair_Tool
             _timer = new System.Timers.Timer();
             _timer.Elapsed += new System.Timers.ElapsedEventHandler(_timer_tick);
             _timer.Interval = 1000;
-            Bitmap bm = new Bitmap(Properties.Resources.Logo);
-            this.Icon = Icon.FromHandle(bm.GetHicon());
+            // Icon bm = new Icon();
+            this.Icon = Consortio_ML_Repair_Tool.Properties.Resources.C_logo;
         }
 
         // Timer event
