@@ -228,7 +228,7 @@ namespace Consortio_Translation_Repair_Tool
                                 }
                                 else if (line.Contains('[') && line.Contains(PageNamesML) || _findlastBracketsPageNames)
                                 {
-                                    _OutputSb.AppendLine(line);
+                                    //_OutputSb.AppendLine(line);
                                     var newLine = AddDanInArrayPageNamesML(line);
                                     _OutputSb.AppendLine(newLine);
                                     fileWriter.WriteLine(newLine);
@@ -435,11 +435,23 @@ namespace Consortio_Translation_Repair_Tool
                 {
                     textConstValue = line.Substring(posENUValue, (pos4 - posENUValue) - 1);
                     currentValue = line.Substring(posDEU, (line.Length - posDEU));
+                    if (textConstValue.Contains("http://"))
+                    {
+                        textConstValue = line.Substring(posENUValue + 1, (pos4 - posENUValue) - 1);
+                        textConstValue = '"' + textConstValue + '"';
+                        textConstValue = "=" + textConstValue;
+                    }
                 }
                 else if (line.Contains("DEU") && !line.Contains("ENU"))
                 {
                     textConstValue = line.Substring(posDEUValue, (pos4 - posDEUValue) - 1);
                     currentValue = line.Substring(posDEU, (line.Length - posDEU));
+                    if (textConstValue.Contains("http://"))
+                    {
+                        textConstValue = line.Substring(posDEUValue + 1, (pos4 - posDEUValue) - 1);
+                        textConstValue = '='+'"' + textConstValue + '"';
+                        textConstValue = "=" + textConstValue;
+                    }
                 }
                 if(!string.IsNullOrEmpty(currentValue))
                     newLine = textConstVar + "DAN" + textConstValue + ";" + currentValue;
